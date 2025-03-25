@@ -1,3 +1,3 @@
-const { printHello } = require("./file2");
+const printHello = require("./file2");
 
 printHello();
