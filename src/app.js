@@ -1,39 +1,27 @@
 const express = require('express');
 const app = express();
+const User = require('../src/models/user');
 
-// define a route
+app.use(express.json());
 
-app.get('/hello', (req, res) => {
-    return res.send('hello');
+app.post('/signup', async (req, res) => {
+  const user = new User(req.body);
+  try {
+    await user.save();
+    res.send('user created...')
+  } catch(error) {
+    res.status(400).send('error creating user...' + error.message);
+  }
 });
 
-app.get('/hello*ab', (req, res) => {
-    return res.send('hello*ab');
-});
+const connectDB = require('../src/config/database');
 
-// dynamic routes
-app.get('/hello/:id', (req, res) => {
-    return res.send('dynamic routes');
-});
-
-app.get('/hello/:id', (req, res) => {
-    return res.send('dynamic routes');
-});
-
-app.get('/a+', (req, res) => {
-    return res.send('a+ routes');
-});
-
-app.get('/a*', (req, res) => {
-    return res.send('a* routes');
-});
-
-app.use('/', (req, res) => {
-    res.send('Hello World!');
-});
-
-// start the server
-const PORT = 3000;
-app.listen(PORT, () => {
-   console.log('listening on port ' + PORT); 
+connectDB().then(() => {
+  console.log('database connection established...');
+  const PORT = 7777;
+  app.listen(PORT, () => {
+    console.log('listening on port 7777');
+  });
+}).catch(() => {
+    console.log('error connecting to database');
 });
