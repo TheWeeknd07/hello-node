@@ -1,3 +1,7 @@
-const printHello = require("./file2");
+const printH = require("./file2");
 
-printHello();
+setTimeout(()=> {
+    console.log("inside setTimeout");
+}, 0);
+
+printH();

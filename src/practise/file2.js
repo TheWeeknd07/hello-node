@@ -4,3 +4,4 @@ function printHello() {
    
 module.exports = printHello
 console.log(module.exports);
+console.log(module);
