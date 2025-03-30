@@ -5,7 +5,9 @@ setImmediate(() => {
    console.log('setImmediate'); 
 });
 
-fs.readFile("./file1.js", "utf-8", () => {
+Promise.resolve().then(() => console.log('Promise'));
+
+fs.readFile("./file.txt", "utf-8", () => {
     console.log('readFile');
 });
 
