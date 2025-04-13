@@ -1,25 +1,28 @@
 const express = require('express');
 const app = express();
 
-// url: localhost:7777/hello, response: Hello from Server!!!
+const { adminAuth, userAuth } = require('./authenticate/auth');
 
-app.get('/hello',
-    (req, res, next) => {
-        // res.send('Response Handler 1');
-        next();
-    },
-    (req, res, next) => {
-        // res.send('Response Handler 2');
-        next();
-    },
-    (req, res, next) => { // now it will look for next route handler or response handler callback
-        // res.send('Response Handler 3');
-        next();
-    }
-);
+app.use('/admin', adminAuth);
+
+app.post('/user/login', (req, res) => {
+    res.send('User Logged In Successfully');
+});
+
+app.get('/user/data', userAuth, (req, res) => {
+    res.send('User Data');
+});
+
+app.get('/admin/getAllData', (req, res) =>{
+    res.send('All Data');
+});
+
+app.post('/admin/deleteUser', (req, res) => {
+    res.send('User Deleted');
+});
 
 app.use((req, res) => {
-    res.send('Hello from Server!!!');
+    res.send('Default route handler or Wild card handler!!!');
 });
 
 app.listen(7777, () => {
