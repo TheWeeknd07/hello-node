@@ -65,17 +65,27 @@ app.delete("/user", async (req, res) => {
 });
 
 // Update data of the user
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const {userId} = req.params;
   const data = req.body;
   try {
-    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
-      returnDocument: "after",
+    console.log("data: ", data);
+    const ALLOWED_UPDATES = ['firstName', 'lastName', 'password', 'photoUrl', 'about', 'skills'];
+    const isUpdateAllowed = Object.keys(data).every((k) => {
+      return ALLOWED_UPDATES.includes(k)
     });
-    console.log(user);
-    res.send("User updated successfully");
+    console.log("isUpdateAllowed: ", isUpdateAllowed);
+    if(!isUpdateAllowed) {
+      throw new Error('update not allowed');
+    } else{ 
+      const user = await User.findByIdAndUpdate({ _id: userId }, data, {
+        returnDocument: "after",
+      });
+      console.log(user);
+      res.send("User updated successfully");
+    }
   } catch (err) {
-    res.status(400).send("Something went wrong ");
+    res.status(400).send("Something went wrong: " + err.message);
   }
 });
 
