@@ -6,6 +6,7 @@ const { validateSignupData } = require("./utils/validations");
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
+const { userAuth } = require("./middlewares/auth");
 
 app.use(express.json());
 app.use(cookieParser());
@@ -42,10 +43,14 @@ app.post('/login', async (req, res) => {
     if(!user) {
       throw new Error("Invalid credentials");
     } else {
-      const isPasswordMatched = await bcrypt.compare(password, user.password);
-      if(isPasswordMatched) {
-        const token = jwt.sign({ _id: user._id }, 'DEV@TINDER$02');
-        res.cookie('token', token);
+
+      const isPasswordValid = await user.validatePassword(password);
+      if(isPasswordValid) {
+        const token = await user.getJWT();
+        res.cookie('token', token, {
+          expires: new Date(Date.now() + 900000),
+          httpOnly: true
+        });
         res.send('Login successful');
       } else {
         throw new Error("Invalid credentials");
@@ -56,23 +61,25 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.get('/profile', async(req, res) => {
+app.get('/profile', userAuth, async(req, res) => {
   try {
-    const token = req.cookies.token;
-    const decodedUser = await jwt.verify(token, 'DEV@TINDER$02');
-    const user = await User.findById(decodedUser._id);
-    if(user) {
-      res.send(user);
-    } else {
-      throw new Error("User does not found");
-    }
-  } catch {
+    console.log(req.user);
+    const user = req.user;
+    res.send(user);
+  } catch(error) {
     res.status(401).send("Error: " + error.message);
   }
 });
 
+app.post('/sendConnectionRequest', userAuth, async(req, res) => {
+  const user = req.user;
+  // sending a connection request
+  console.log("sending a connection request");
+  res.send(user.firstName + " has sent a connection request");
+});
+
 // Get user by email
-app.get("/user", async (req, res) => {
+app.get("/user", userAuth, async (req, res) => {
   const userEmail = req.body.emailId;
 
   try {
