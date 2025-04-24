@@ -4,8 +4,11 @@ const app = express();
 const User = require("./models/user");
 const { validateSignupData } = require("./utils/validations");
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 
 app.use(express.json());
+app.use(cookieParser());
 
 // Create a new user
 app.post('/signup', async (req, res) => {
@@ -38,14 +41,32 @@ app.post('/login', async (req, res) => {
     const user = await User.findOne({emailId});
     if(!user) {
       throw new Error("Invalid credentials");
-    }
-    const isPasswordMatched = await bcrypt.compare(password, user.password);
-    if(isPasswordMatched) {
-      res.send('Login successful');
     } else {
-      throw new Error("Invalid credentials");
+      const isPasswordMatched = await bcrypt.compare(password, user.password);
+      if(isPasswordMatched) {
+        const token = jwt.sign({ _id: user._id }, 'DEV@TINDER$02');
+        res.cookie('token', token);
+        res.send('Login successful');
+      } else {
+        throw new Error("Invalid credentials");
+      }
     }
   } catch(error) {
+    res.status(401).send("Error: " + error.message);
+  }
+});
+
+app.get('/profile', async(req, res) => {
+  try {
+    const token = req.cookies.token;
+    const decodedUser = await jwt.verify(token, 'DEV@TINDER$02');
+    const user = await User.findById(decodedUser._id);
+    if(user) {
+      res.send(user);
+    } else {
+      throw new Error("User does not found");
+    }
+  } catch {
     res.status(401).send("Error: " + error.message);
   }
 });
